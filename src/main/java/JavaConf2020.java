@@ -1,14 +1,47 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.InputMismatchException;
 import java.util.Stack;
 
 public class JavaConf2020 {
+    static BufferedReader input;
+    static String filePath;
+    static boolean fileExists = false;
+    static ArrayList<String> inputFile;
+    static String errorMessage;
+    static int counter = 0;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+
+        getFile();
+        int emptyStringCount;
+
+        inputFile = (ArrayList<String>) Files.readAllLines(Path.of(filePath));//reads file as arraylist
+
+        ArrayList<String> title = new ArrayList<>();
+        ArrayList<Integer> minuets = new ArrayList<>();
+
+        for( String talk: inputFile){
+            String[] str = talk.split("    ");
+            title.add(str[0]);
+            minuets.add(Integer.valueOf(str[1]));
+        }//puts the talk titles in an arraylist and the talk times in an array list
+
+
+
 
         HashMap<Integer, Stack<String>> sessions = new HashMap<>();
         ArrayList<String> scheduleList = new ArrayList<>();
         Schedule testSchedule = new Schedule(195, sessions, scheduleList);
+
+        for(int i = 0; i < title.size(); i++){
+            testSchedule.addSession(minuets.get(i), title.get(i));
+        }
 
         int key45 = 45;
         int key30 = 30;
@@ -57,4 +90,28 @@ public class JavaConf2020 {
         System.out.println("Schedule: " + testSchedule.getScheduleList());
 
     }
+
+    static void getFile() throws IOException {//inputing a file
+        input = new BufferedReader(new InputStreamReader(System.in));
+
+        System.out.println("Please enter the path of the file you would like to format: ");
+
+        do {
+            try {
+                filePath = input.readLine();
+
+                if (!Files.exists(Path.of(filePath)) || filePath.equals("")) {
+                    throw new InputMismatchException();
+                }
+                else {
+                    fileExists = true;
+                }
+            } catch (InputMismatchException e) {
+                errorMessage = "File not found. Please enter a valid file path.";
+                System.out.println(errorMessage);
+            }
+
+        } while (!fileExists);
+    }
+
 }
