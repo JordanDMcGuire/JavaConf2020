@@ -2,11 +2,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.InputMismatchException;
-import java.util.Stack;
 
 public class JavaConf2020 {
     static BufferedReader input;
@@ -14,90 +13,56 @@ public class JavaConf2020 {
     static boolean fileExists = false;
     static ArrayList<String> inputFile;
     static String errorMessage;
-    static int counter = 0;
+    static String printChecker;
+    // Create the schedule object
+    static Schedule schedule = new Schedule();
 
     public static void main(String[] args) throws IOException {
 
         getFile();
-        int emptyStringCount;
 
-        inputFile = (ArrayList<String>) Files.readAllLines(Path.of(filePath));//reads file as arraylist
+        // Reads file as arraylist
+        inputFile = (ArrayList<String>) Files.readAllLines(Path.of(filePath));
 
         ArrayList<String> title = new ArrayList<>();
-        ArrayList<Integer> minuets = new ArrayList<>();
+        ArrayList<Integer> minutes = new ArrayList<>();
 
-        for( String talk: inputFile){
+        // Puts the talk titles in an arraylist and the talk times in an array list
+        for(String talk: inputFile){
             String[] str = talk.split("    ");
             title.add(str[0]);
-            minuets.add(Integer.valueOf(str[1]));
-        }//puts the talk titles in an arraylist and the talk times in an array list
-
-
-
-
-        HashMap<Integer, Stack<String>> sessions = new HashMap<>();
-        ArrayList<String> scheduleList = new ArrayList<>();
-        Schedule testSchedule = new Schedule(195, sessions, scheduleList);
-
-        for(int i = 0; i < title.size(); i++){
-            testSchedule.addSession(minuets.get(i), title.get(i));
+            if (str[1].equals("Lightning")) {
+                minutes.add(5);
+            }
+            else {
+                minutes.add(Integer.parseInt(str[1].substring(0, 2)));
+            }
         }
 
-        int key45 = 45;
-        int key30 = 30;
+        // Fill the sessions structure in the schedule object
+        for(int i = 0; i < title.size(); i++){
+            schedule.addSession(minutes.get(i), title.get(i));
+        }
 
-        String session1 = "Java and Containers - Make it Awesome! - 45 min";
-        String session2 = "Memory Efficient Java - 45 min";
-        String session3 = "Discover Modern Java - 45 min";
+        // Let the program decide which order sessions are in
+        schedule.shuffle();
+        schedule.shuffle();
+        schedule.shuffle();
 
-        String session4 = "Java: Did you Know That? - 30 min";
-        String session5 = "Property-Based Testing in Java - 30 min";
-
-        testSchedule.addSession(key45, session1);
-        testSchedule.addSession(key45, session2);
-        testSchedule.addSession(key45, session3);
-        testSchedule.addSession(key30, session4);
-        testSchedule.addSession(key30, session5);
-
-        // state 1
-        System.out.println("State 1: ");
-        System.out.println("Total Sessions Available: " + testSchedule.getSessions());
-        System.out.println("Schedule: " + testSchedule.getScheduleList());
-
-        testSchedule.addToTrack1(key30);
-
-        // state 2
-        System.out.println();
-        System.out.println("State 2: ");
-        System.out.println("Total Sessions Available: " + testSchedule.getSessions());
-        System.out.println("Schedule: " + testSchedule.getScheduleList());
-
-        testSchedule.addToTrack1(key30);
-
-        // state 3
-        System.out.println();
-        System.out.println("State 3: ");
-        System.out.println("Total Sessions Available: " + testSchedule.getSessions());
-        System.out.println("Schedule: " + testSchedule.getScheduleList());
-
-        testSchedule.addToTrack1(key45);
-        testSchedule.addToTrack1(key45);
-
-        // state 4
-        System.out.println();
-        System.out.println("State 4: ");
-        System.out.println("Total Sessions Available: " + testSchedule.getSessions());
-        System.out.println("Schedule: " + testSchedule.getScheduleList());
+        // Fill and print
+        schedule.fill();
+        System.out.println(schedule);
 
     }
 
-    static void getFile() throws IOException {//inputing a file
-        input = new BufferedReader(new InputStreamReader(System.in));
+    // input a file
+    static void getFile() throws IOException {
 
         System.out.println("Please enter the path of the file you would like to format: ");
 
         do {
             try {
+                input = new BufferedReader(new InputStreamReader(System.in));
                 filePath = input.readLine();
 
                 if (!Files.exists(Path.of(filePath)) || filePath.equals("")) {
@@ -108,6 +73,9 @@ public class JavaConf2020 {
                 }
             } catch (InputMismatchException e) {
                 errorMessage = "File not found. Please enter a valid file path.";
+                System.out.println(errorMessage);
+            } catch (InvalidPathException e) {
+                errorMessage = "Illegal character found. Please enter a valid file path.";
                 System.out.println(errorMessage);
             }
 
